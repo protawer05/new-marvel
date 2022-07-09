@@ -5,7 +5,7 @@ import * as Yup from 'yup'
 import {useState} from 'react'
 import {Link} from 'react-router-dom'
 const CharSearchForm = () => {
-    const {getCharacterByName, error, clearError} = useMarvelService();
+    const {getCharacterByName, clearError, process, setProcess} = useMarvelService();
 
     const [char, setChar] = useState(null)
 
@@ -17,9 +17,10 @@ const CharSearchForm = () => {
         clearError();
         getCharacterByName(charName)
             .then(onCharLoaded)
+            .then(() => setProcess('confirmed'))
     }
 
-    const errorMessage = error ? <div className="char__search-critical-error"><ErrorMessage /></div> : null
+    const errorMessage = process === 'error' ? <div className="char__search-critical-error"><ErrorMessage /></div> : null
     const result = !char ? null : char.length > 0 ? 
                     <div className="char__search-wrapper">
                         <div className="char__search-success">There is! Visit {char[0].name} page?</div>
@@ -57,6 +58,7 @@ const CharSearchForm = () => {
                             <button 
                                 type='submit' 
                                 className="button button__main"
+                                disabled={process === 'loading' ? true : false}
                                 >
                                 <div className="inner">find</div>
                             </button>

@@ -6,12 +6,27 @@ import { useEffect, useState } from 'react';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 
+const setContent = (process, Component, newItemLoading) => {
+    switch (process){
+        case 'waiting': 
+            return <Spinner/>;
+        case 'loading':
+            return newItemLoading ? <Component/> : <Spinner/>
+        case 'confirmed':
+            return <Component/>;
+        case 'error':
+            return <ErrorMessage/>;
+        default: 
+            throw new Error('Unexpected process state');
+    }
+}
+
 const ComicsList = () => {
     const [comicsList, setComicsList] = useState([])
     const [offset, setOffset] = useState(210);
     const [newComicsLoading, setNewComicsLoading] = useState(false);
 
-    const {loading, error, getAllComics} = useMarvelService();
+    const {getAllComics, process, setProcess} = useMarvelService();
     
     useEffect(() => {
         onRequest(offset, true);
@@ -21,6 +36,7 @@ const ComicsList = () => {
         initial ? setNewComicsLoading(false) : setNewComicsLoading(true);
         getAllComics(offset)
         .then(onComicsListLoaded)
+        .then(() => setProcess('confirmed'));
     }
 
     const onComicsListLoaded = (newComicsList) => {
@@ -42,19 +58,16 @@ const ComicsList = () => {
                 </li>
             )
         })
-        return items;
+        return <ul className="comics__grid">
+                    {items}
+               </ul>
+        ;
     }
-    const items = renderComics(comicsList);
-    const spinner = loading && !newComicsLoading ? <Spinner/> : null;
-    const errorMessage = error ? <ErrorMessage/> : null
+
     return (
         <>
         <div className="comics__list">
-            <ul className="comics__grid">
-                {items}
-            </ul>
-            {spinner}
-            {errorMessage}
+                {setContent(process, () => renderComics(comicsList), newComicsLoading)}
             <button onClick={() => onRequest(offset)} disabled={newComicsLoading} className="button button__main button__long">
                 <div className="inner">load more</div>
             </button>

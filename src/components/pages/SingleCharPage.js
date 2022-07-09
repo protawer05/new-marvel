@@ -2,12 +2,12 @@ import './singleCharPage.scss';
 import { useParams } from 'react-router-dom';
 import useMarvelService from '../../services/MarvelService';
 import { useEffect, useState } from 'react';
-import Spinner from '../spinner/Spinner';
 import {Link} from 'react-router-dom';
 import { Helmet } from 'react-helmet';
+import setContent from '../../utils/setContent'
 
 const SingleCharPage = () => {
-    const {getCharacter, loading} = useMarvelService();
+    const {getCharacter, process, setProcess} = useMarvelService();
     const [char, setChar] = useState(null)
     const {charId} = useParams();
 
@@ -17,19 +17,18 @@ const SingleCharPage = () => {
     useEffect(() => {
         getCharacter(charId)
             .then(onCharLoaded)
+            .then(() => setProcess('confirmed'))
+        //eslint-disable-next-line
     }, [])
 
-    const spinner = loading ? <Spinner/> : null;
-    const content = !(loading || !char) ? <View char={char}/> : null
     return (
         <>
-            {spinner}
-            {content}
+            {setContent(process, View, char)}
         </>
     )
 }
-const View = ({char}) => {
-    const {thumbnail, name, description} = char;
+const View = ({data}) => {
+    const {thumbnail, name, description} = data;
     return (
         <>
             <Helmet>
